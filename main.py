@@ -116,6 +116,18 @@ class ImageEditor:
             except:
                 cv2.imwrite(f.name,self.image)
 
+    def setDefault(self):
+        self.rotateVar.set(0)
+        self.translateXVar.set(0)
+        self.translateYVar.set(0)
+        self.resizeXVar.set(0)
+        self.resizeYVar.set(0)
+        self.flipVEntry.config(text="False")
+        self.flipHEntry.config(text="False")
+        self.cropEntry.config(text="False")
+        self.toCrop = False
+
+
     def Confirm(self, LabelWidget, ScaleWidget, EntryWidget, ConfirmWidget, CloseWidget, OpenWidget, OpenRow):
         self.image=self.imageMod
         self.Close(LabelWidget, ScaleWidget, EntryWidget, ConfirmWidget, CloseWidget, OpenWidget, OpenRow)
@@ -130,6 +142,7 @@ class ImageEditor:
         OpenWidget.grid(row=OpenRow,column=0,columnspan=3, padx=5,pady=5)
         self.openedRow = -1
         self.openedWidget = None
+        self.setDefault()
         self.change_panelB(self.image)
 
     def Open(self, LabelWidget, ScaleWidget, EntryWidget, ConfirmWidget, CloseWidget, OpenWidget, OpenRow):
@@ -146,6 +159,7 @@ class ImageEditor:
                 children.grid_forget()
             self.openedWidget.grid(row=self.openedRow,column=0,columnspan=3, padx=5,pady=5)
             self.imageMod = self.image
+            self.setDefault()
             self.change_panelB(self.image)
         self.openedRow = OpenRow
         self.openedWidget = OpenWidget
