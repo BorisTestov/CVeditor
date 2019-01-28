@@ -50,14 +50,14 @@ class ImageEditor:
         imageOnB = None
         try:
             if(image == None):
-                imageOnB = cv2.cvtColor(self.imageMod, cv2.COLOR_BGR2RGB)
+                imageOnB = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
         except:
             imageOnB = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         imageOnB = Image.fromarray(imageOnB)
         imageOnB=ImageTk.PhotoImage(imageOnB)
         self.root.imageOnB = imageOnB
         if self.panelB is None:
-            self.panelB = Canvas(self.root, width=640,height=480, bg='black')
+            self.panelB = Canvas(self.root, bg='white', height = self.image.shape[0], width = self.image.shape[1])
             self.canvas_image = self.panelB.create_image(0,0,anchor="nw",image=imageOnB)
             self.panelB.pack(side="right", padx=10, pady=10)  
             self.panelB.bind("<ButtonPress-1>", self.on_button_press)
@@ -89,7 +89,7 @@ class ImageEditor:
         imageOnA=ImageTk.PhotoImage(imageOnA)
         self.root.imageOnA = imageOnA
         if self.panelA is None:
-            self.panelA = Label(image=imageOnA)
+            self.panelA = Label(image = imageOnA, height = self.height, width = self.width)
             self.panelA.pack(side="left", padx=10, pady=10)  
         else:
             self.panelA.configure(image=imageOnA)           
@@ -98,6 +98,20 @@ class ImageEditor:
         path = filedialog.askopenfilename()
         if len(path) > 0:
             self.image = cv2.imread(path)
+            self.height = self.image.shape[0]
+            self.width = self.image.shape[1]
+            if (self.width > 640):
+                r = 640.0 / self.image.shape[1]
+                dim = (640, int(self.image.shape[0] * r))
+                self.image = cv2.resize(self.image, dim, interpolation=cv2.INTER_AREA)
+                self.height = self.image.shape[0]
+                self.width = self.image.shape[1]
+            if (self.height > 480):
+                r = 480.0 / self.image.shape[0]
+                dim = (int(self.image.shape[1] * r), 480)
+                self.image = cv2.resize(self.image, dim, interpolation=cv2.INTER_AREA)
+                self.height = self.image.shape[0]
+                self.width = self.image.shape[1]
             self.imageMod=self.image.copy()
             self.change_panelA()
             self.change_panelB()
@@ -118,10 +132,10 @@ class ImageEditor:
 
     def setDefault(self):
         self.rotateVar.set(0)
-        self.translateXVar.set(0)
-        self.translateYVar.set(0)
-        self.resizeXVar.set(0)
-        self.resizeYVar.set(0)
+        self.translateXVar.set(1)
+        self.translateYVar.set(1)
+        self.resizeXVar.set(1)
+        self.resizeYVar.set(1)
         self.flipVEntry.config(text="False")
         self.flipHEntry.config(text="False")
         self.cropEntry.config(text="False")
@@ -168,19 +182,19 @@ class ImageEditor:
         (h, w) = self.image.shape[:2]
         (cX, cY) = (w / 2, h / 2)
         M = cv2.getRotationMatrix2D((cX, cY), self.rotateVar.get(), 1.0)
-        image = cv2.warpAffine(self.image, M, (w, h))
+        image = cv2.warpAffine(self.image, M, (w, h), borderMode=cv2.BORDER_CONSTANT, borderValue=(255,255,255))
         self.imageMod=image
         self.change_panelB(image)
 
     def translateXImage(self, name=None, index=None, mode=None):
         M = np.float32([[1, 0, float(self.translateXVar.get())], [0, 1, 0]])
-        image = cv2.warpAffine(self.image, M, (self.image.shape[1], self.image.shape[0]))
+        image = cv2.warpAffine(self.image, M, (self.image.shape[1], self.image.shape[0]), borderMode=cv2.BORDER_CONSTANT, borderValue=(255,255,255))
         self.imageMod=image
         self.change_panelB(image)
 
     def translateYImage(self, name=None, index=None, mode=None):
         M = np.float32([[1, 0, 0], [0, 1, float(self.translateYVar.get())]])
-        image = cv2.warpAffine(self.image, M, (self.image.shape[1], self.image.shape[0]))
+        image = cv2.warpAffine(self.image, M, (self.image.shape[1], self.image.shape[0]), borderMode=cv2.BORDER_CONSTANT, borderValue=(255,255,255))
         self.imageMod=image
         self.change_panelB(image)
 
@@ -269,6 +283,6 @@ class ImageEditor:
 
 if __name__ == '__main__':
     root = Tk()
-    root.geometry("1280x480")
+    root.title("OpenCV Editor")
     Editor = ImageEditor(root)
     root.mainloop()
